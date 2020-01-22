@@ -8,6 +8,31 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    checkLicense();
+    //ui->label->setScaledContents(true);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::filter(char * image, int width, int height)
+{
+    //char * result = new char[height*width];
+
+    for(int i = 0; i < height; i++)
+        for(int j = 0; j < width; j++)
+        {
+            //image[i*width + j] = image[i*width + j] * 1;
+        }
+
+    //pixmap.loadFromData((const uchar*)image, 174000,"BMP");
+    //ui->label->setPixmap(pixmap);
+}
+
+void MainWindow::startApp()
+{
     file = "F:/lena512.bmp";
     pixmap.load(file);
 
@@ -40,26 +65,74 @@ MainWindow::MainWindow(QWidget *parent)
     this->showMaximized();
 
     ui->label->setPixmap(pixmap.scaled(1000, 1000, Qt::KeepAspectRatio));
-    //ui->label->setScaledContents(true);
 }
 
-MainWindow::~MainWindow()
+void MainWindow::checkLicense()
 {
-    delete ui;
-}
+    //Проверка ключа
+    QNetworkAccessManager *manager = new QNetworkAccessManager();
 
-void MainWindow::filter(char * image, int width, int height)
-{
-    //char * result = new char[height*width];
+    QFile userInfo;
+    QString fileTemplate = "%diskName%:/userInfo";
+    QString fileName;
 
-    for(int i = 0; i < height; i++)
-        for(int j = 0; j < width; j++)
-        {
-            //image[i*width + j] = image[i*width + j] * 1;
+    for(int i = 'A'; i < 'Z'; i++) {
+        fileName = fileTemplate;
+        userInfo.setFileName(fileName.replace("%diskName%", QChar(i)));
+
+        if(!userInfo.open(QIODevice::ReadOnly)) {
+            continue;
         }
+        else {
+            keyFileName = QChar(i) + QString(":/key");
 
-    //pixmap.loadFromData((const uchar*)image, 174000,"BMP");
-    //ui->label->setPixmap(pixmap);
+            userInfoStr = userInfo.readAll();
+
+            userInfoStr = QByteArray::fromBase64(userInfoStr.toUtf8());
+
+            QString url = "http://91.239.27.88/users/" + userInfoStr.split(";")[0] + "/userInfo";
+
+            tt =manager->get(QNetworkRequest(QUrl(url)));
+
+            connect(tt, &QIODevice::readyRead, this, &MainWindow::getResponse);
+        }
+    }
+}
+
+
+
+void MainWindow::getResponse()
+{
+    QNetworkAccessManager *manager = new QNetworkAccessManager();
+
+    QString data = QByteArray::fromBase64(tt->readAll());
+
+    if(data.split(";")[0] == userInfoStr.split(";")[0]) {
+        if(data.split(";")[1] == userInfoStr.split(";")[1]) {
+            QString url = "http://91.239.27.88/users/" + userInfoStr.split(";")[0] + "/key";
+
+            tt =manager->get(QNetworkRequest(QUrl(url)));
+
+            connect(tt, &QIODevice::readyRead, this, &MainWindow::getKey);
+        }
+    }
+
+    int a = 5;
+}
+
+void MainWindow::getKey()
+{
+    QString data = tt->readAll();
+
+    QFile keyFile(keyFileName);
+
+    if(!keyFile.open(QIODevice::ReadOnly)) {
+        return;
+    }
+
+    QString key = keyFile.readAll();
+
+    if(data == key) startApp();
 }
 
 void MainWindow::on_bw_clicked()
