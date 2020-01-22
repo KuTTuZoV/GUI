@@ -1,0 +1,4 @@
+C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/_GUI.dir
+C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/edit_cache.dir
+C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/rebuild_cache.dir
+C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/_GUI_autogen.dir

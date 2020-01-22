@@ -1,0 +1,33 @@
+{
+	"BUILD_DIR" : "C:/Users/anton/Documents/GUI/GUI/build/_GUI_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/anton/Documents/GUI/GUI/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/anton/Documents/GUI/GUI/build",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/anton/Documents/GUI/GUI",
+	"CMAKE_EXECUTABLE" : "C:/Program Files/CMake/bin/cmake.exe",
+	"CMAKE_SOURCE_DIR" : "C:/Users/anton/Documents/GUI/GUI",
+	"HEADERS" : 
+	[
+		[ "C:/Users/anton/Documents/GUI/GUI/mainwindow.h", "mU", "" ],
+		[ "C:/Users/anton/Documents/pluginGUI/widget.h", "mU", "" ]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "C:/Users/anton/Documents/GUI/GUI/build/_GUI_autogen/include",
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 4,
+	"PARSE_CACHE_FILE" : "C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/_GUI_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "",
+	"QT_UIC_EXECUTABLE" : "D:/Qt/5.14.0/mingw73_32/bin/uic.exe",
+	"QT_VERSION_MAJOR" : 5,
+	"SETTINGS_FILE" : "C:/Users/anton/Documents/GUI/GUI/build/CMakeFiles/_GUI_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[ "C:/Users/anton/Documents/GUI/GUI/main.cpp", "mU" ],
+		[ "C:/Users/anton/Documents/GUI/GUI/mainwindow.cpp", "mU" ],
+		[ "C:/Users/anton/Documents/pluginGUI/widget.cpp", "mU" ]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}
