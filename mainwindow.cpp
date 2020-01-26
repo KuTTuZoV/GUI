@@ -8,6 +8,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //startApp();
+
+    msgForVIPUsers = "0KHQstGP0LbQuNGC0LXRgdGMINGBINC60L7QvNCw0L3QtNC+0Lkg0YDQsNC30YDQsNCx0L7RgtGH0LjQutC+0LIg0LTQu9GPINC00LDQu9GM0L3QtdC50YjQtdC5INGA0LDQsdC+0YLRiy4g0JzRiyDQstC40LTQuNC8INCyINCS0LDRgSDQsdC+0LvRjNGI0L7QuSDQv9C+0YLQtdC90YbQuNCw0Lsg0LLQt9C70L7QvNGJ0LjQutCwINCf0J4u";
+
     checkLicense();
     //ui->label->setScaledContents(true);
 }
@@ -33,7 +37,13 @@ void MainWindow::filter(char * image, int width, int height)
 
 void MainWindow::startApp()
 {
-    file = "F:/lena512.bmp";
+    QFile original("F:/lena512color.bmp");
+
+    original.open(QIODevice::ReadOnly);
+
+    QByteArray imgData = original.readAll();
+
+    file = "F:/lena512color.bmp";
     pixmap.load(file);
 
     QDir dir("plugins");
@@ -47,6 +57,11 @@ void MainWindow::startApp()
         if(!pluginDescription.open(QIODevice::ReadOnly)) continue;
 
         PluginGUI * test = new PluginGUI("plugins/" + subdir + "/" + subdir + ".dll");
+
+        test->setPicture(imgData);
+        connect(test, &PluginGUI::filtered, this, &MainWindow::setImage);
+
+        pluginList.append(test);
 
         test->readXML(pluginDescription.readAll());
         pluginDescription.close();
@@ -63,6 +78,51 @@ void MainWindow::startApp()
     }
 
     this->showMaximized();
+
+    ui->label->setPixmap(pixmap.scaled(1000, 1000, Qt::KeepAspectRatio));
+}
+
+void MainWindow::startAppOnePlugin()
+{
+    QFile original("F:/lena512color.bmp");
+
+    original.open(QIODevice::ReadOnly);
+
+    QByteArray imgData = original.readAll();
+
+    file = "F:/lena512color.bmp";
+    pixmap.load(file);
+
+    QDir dir("plugins");
+
+    QStringList subdirs = dir.entryList();
+
+    subdirs.pop_front();
+    subdirs.pop_front();
+
+    QFile pluginDescription("plugins/" + subdirs[0] + "/pluginDescription.xml");
+
+    if(!pluginDescription.open(QIODevice::ReadOnly)) return;
+
+    PluginGUI * test = new PluginGUI("plugins/" + subdirs[0] + "/" + subdirs[0] + ".dll");
+
+    test->setPicture(imgData);
+    connect(test, &PluginGUI::filtered, this, &MainWindow::setImage);
+
+    pluginList.append(test);
+
+    test->readXML(pluginDescription.readAll());
+    pluginDescription.close();
+
+    QDockWidget * dock = new QDockWidget(test->windowTitle());
+    ui->filterList->addItem(test->windowTitle());
+    dock->setWidget(test);
+
+    dock->setFeatures(QDockWidget::DockWidgetFloatable |
+                     QDockWidget::DockWidgetMovable);
+    docks.append(dock);
+
+    this->addDockWidget(Qt::BottomDockWidgetArea, dock);
 
     ui->label->setPixmap(pixmap.scaled(1000, 1000, Qt::KeepAspectRatio));
 }
@@ -108,16 +168,31 @@ void MainWindow::getResponse()
     QString data = QByteArray::fromBase64(tt->readAll());
 
     if(data.split(";")[0] == userInfoStr.split(";")[0]) {
-        if(data.split(";")[1] == userInfoStr.split(";")[1]) {
-            QString url = "http://91.239.27.88/users/" + userInfoStr.split(";")[0] + "/key";
+        QString url = "http://91.239.27.88/users/" + userInfoStr.split(";")[0] + "/key";
+
+        QDate date;
+
+        date = QDate::fromString(data.split(';')[1], "dd.MM.yyyy");
+
+        if(data.split(';')[1] != userInfoStr.split(";")[1]) {
+            box.setText(QByteArray::fromBase64(msgForVIPUsers));
+            box.showNormal();
+            return;
+        }
+
+        if(QDate::currentDate().daysTo(date) > 0) {
 
             tt =manager->get(QNetworkRequest(QUrl(url)));
 
             connect(tt, &QIODevice::readyRead, this, &MainWindow::getKey);
         }
+        else {
+            box.setText("Истек срок лицензии");
+            box.showNormal();
+            startAppOnePlugin();
+            return;
+        }
     }
-
-    int a = 5;
 }
 
 void MainWindow::getKey()
@@ -135,49 +210,19 @@ void MainWindow::getKey()
     if(data == key) startApp();
 }
 
+void MainWindow::setImage(QByteArray image)
+{
+    pixmap.loadFromData(image);
+    ui->label->setPixmap(pixmap.scaled(1000, 1000, Qt::KeepAspectRatio));
+
+    for(auto temp : pluginList) {
+        temp->setPicture(image);
+    }
+}
+
 void MainWindow::on_bw_clicked()
 {
-    int kernelSize = 5;
-    double ** GKernel;
-    int imgWidth, imgHeight;
-    int mode = 0;
 
-    //Выделение памяти для хранения ядра
-    GKernel = new double *[kernelSize];
-    for (int i = 0; i < kernelSize; i++)
-        GKernel[i] = new double[kernelSize];
-
-    QFile image(file);
-    image.open(QIODevice::ReadOnly);
-    //Чтение заголовка файла
-    QByteArray data = image.read(sizeof(BMPheader));
-
-
-    BMPheader * header = (BMPheader *)data.data();
-
-    //Сохранение значений ширины и высоты записаных в заголовке
-    imgWidth = header->biWidth;
-    imgHeight = header->biHeight;
-    original = image.read(header->biSizeImage);
-
-    QFile resImageFile("F:/result.bmp");
-    resImageFile.open(QIODevice::WriteOnly);
-
-    //Копирования точно такого же заголовка в результирующий файл
-    resImageFile.write((char*)header, sizeof(BMPheader));
-
-    int bytesCount = imgWidth * imgHeight * header->biBitCount / 8;
-
-    char * padding = new char[header->bfOffBits - sizeof(BMPheader)];
-    image.read(padding, header->bfOffBits - sizeof(BMPheader));
-    resImageFile.write(padding, header->bfOffBits - sizeof(BMPheader));
-
-    image.close();
-
-    filter(original.data(), imgWidth, imgHeight);
-
-    resImageFile.write((char *)original.data(), header->biSizeImage);
-    resImageFile.close();
 }
 
 void MainWindow::on_filterList_itemDoubleClicked(QListWidgetItem *item)

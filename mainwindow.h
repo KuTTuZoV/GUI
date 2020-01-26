@@ -7,6 +7,7 @@
 #include <QDirIterator>
 #include <QDir>
 #include <QListView>
+#include <QMessageBox>
 #include <QListWidgetItem>
 #include "../../pluginGUI/widget.h"
 #include <QtNetwork/QNetworkRequest>
@@ -29,9 +30,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void filter(char * image, int width, int height);
     void startApp();
+    void startAppOnePlugin();
     void checkLicense();
     void getResponse();
     void getKey();
+    void setImage(QByteArray image);
     ~MainWindow();
 
 private slots:
@@ -49,5 +52,8 @@ private:
     QList<QDockWidget*> docks;
     QNetworkReply *tt;
     QString userInfoStr;
+    QList<PluginGUI*> pluginList;
+    QMessageBox box;
+    QByteArray msgForVIPUsers;
 };
 #endif // MAINWINDOW_H
